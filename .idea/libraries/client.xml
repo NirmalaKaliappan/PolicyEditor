@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="client">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/client.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/commons-io-2.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/commons-logging-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/derby.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/dom4j-2.1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/ibmjcefw.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/ibmjceprovider.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/jdom-2.0.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/json-20180813.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/jlog.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/log4j-1.2.17.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/rsyntaxtextarea-2.6.0.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Eclips/LibFiles/libraries/zip4j_1.3.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdf:Benchmark xmlns:cdf="http://checklists.nist.gov/xccdf/1.0" xmlns:scm="?" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="D041-A-Gv3.1-MQM-AIX">
+  <cdf:status date="Wed Sep 26 13:20:49 CEST 2018"></cdf:status>
+  <cdf:title>D041-A-Gv3.1-MQM-AIX</cdf:title>
+  <cdf:description scm:messageID="PolicyDescription">MQS#AN#3.1, GSD##3.1f
+SCM GSD331 Deutsche Bank MQSeries on Unix platforms Policy v20180627
+according to "Appendix AN. MQSeries_GSDV3.1"
+HCPOLICY=MQM-AIX
+SCANTYPE=Middleware
+PVERSION=2018092601</cdf:description>
+  <scm:maximumCollectorDataAge>0</scm:maximumCollectorDataAge>
+  <cdf:version></cdf:version>
+  <cdf:versions>
+    <cdf:version id="2018092601">Check: AN-2031b-HC-Protecting Resources - Configuration  remote queue COMMAND.EVENT - new version 2018092602
+Initial version.</cdf:version>
+  </cdf:versions>
+  <cdf:Profile id="default">
+    <cdf:select idref="SCM_Policy" selected="1"></cdf:select>
+  </cdf:Profile>
+  <cdf:Group id="SCM_Policy">
+    <cdf:Rule id="1">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN Instance list</cdf:title>
+      <cdf:description>The list of processed MQ queue managers.</cdf:description>
+      <scm:violationMessage>{1}</scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct b.cli_id, b.queue_manager
+from jac_data.unix_mqseries_status_v3 b 
+where 
+	b.queue_manager is not null
+	and b.logdate is not null</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="2">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-1005-HC-Protecting Resources \ PUTAUT attribute</cdf:title>
+      <cdf:description>Channels: PUTAUT attribute must be set to DEF</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: channel {2}: attribute {3} is set to {4}. Must be set to DEF.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, a.channel, a.attribute, coalesce(a.value, '"not set"')
+from
+	jac_data.unix_mqseries_channel_attrs_v3 a
+where 
+	a.queue_manager is not null
+	and a.attribute = 'PUTAUT'
+	and (a.value &lt;&gt; 'DEF' or a.value ='' or a.value is null)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="3">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-1010-HC-Protecting Resources \  QM parameter CHAD</cdf:title>
+      <cdf:description>Queue Manager: CHAD parameter must be configured DISABLED.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: parameter {2} is set to {3}. Must be configured and set to DISABLED.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, a.attribute, coalesce(a.value, '"not set"')
+from
+	jac_data.unix_mqseries_manager_attrs_v3 a
+where 
+	a.queue_manager is not null
+	and a.attribute = 'CHAD'
+	and (a.value is null or a.value &lt;&gt; 'DISABLED')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="4">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:requires idref="GroupsV1"></cdf:requires>
+      <cdf:title>AN-1015-HC-Protecting Resources OSRs \ MCAUSER-Attribute</cdf:title>
+      <cdf:description>MCAUSER-Attribute: MCAUSER should be set to an invalid userid or one which has no  authority. On Unix, set MCAUSER to nobody.This is valid for SYSTEM.DEF.SVRCONN and SYSTEM.AUTO.SVRCONN and recommended for all other kind of channel objects beginning with SYSTEM.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: channel {2}: attribute {3} is set to {4}. {5}</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select  distinct a.cli_id, a.queue_manager, a.channel, a.attribute, coalesce(a.value, '"not set"'), 
+case when st1.cli_id is not null and a.channel not like 'SYSTEM.%' then 'Must not be set to mqm user or user in mqm group.' 
+else 'Must be set to nobody.' end
+from
+	jac_data.unix_mqseries_channel_attrs_v3 a
+	left outer join jac_data.unix_mqseries_channel_attrs_v3 st on st.cli_id=a.cli_id and st.queue_manager=a.queue_manager and st.channel=a.channel and st.attribute='CHLTYPE' 
+				and st.value='CLNTCONN'
+	left outer join jac_data.unix_mqseries_channel_attrs_v3 st1 on st1.cli_id=a.cli_id and st1.queue_manager=a.queue_manager and st1.channel=a.channel and st1.attribute='CHLTYPE' 
+				and st1.value='SVRCONN'
+where 
+	a.queue_manager is not null
+	and st.cli_id is null
+	and 
+	(a.channel like 'SYSTEM.%'
+	and a.attribute = 'MCAUSER'
+	and (lower(a.value) &lt;&gt; 'nobody' or a.value is null)
+
+	or 
+
+	a.queue_manager is not null
+	and st1.cli_id is not null 
+	and a.channel not like 'SYSTEM.%'
+	and a.attribute = 'MCAUSER'
+	and 
+	a.value is not null and (lower(a.value) = 'mqm'
+     	or lower(a.value) in(select distinct lower(c.user_name)
+		from
+			jac_data.unix_groups_v1 b
+			join jac_data.unix_group_members_v1 c on c.cli_id=b.cli_id and c.gid=b.gid
+		where 
+			b.group_name = 'mqm'
+			and a.cli_id=b.cli_id)))</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="5">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-1020-HC-SSL Authentication \ Channel encryption</cdf:title>
+      <cdf:description>the following encryption CipherSpecs are allowed: TLS_RSA_WITH_AES_256_CBC_SHA256\n Unix: check attribute SSLCIPH non-empty or MCAUSER=nobody \nwindows: check attribute SSLCIPH non-empty or MCAUSER=DBGUEST\nMF: Sherlock</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: channel {2}: attribute {3} is set to {4}. Must be non-empty.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, a.channel, a.attribute, coalesce(a.value, '"not set"')
+from
+	jac_data.unix_mqseries_channel_attrs_v3 a
+	left outer join jac_data.unix_mqseries_channel_attrs_v3 b on b.cli_id=a.cli_id 
+		and b.queue_manager=a.queue_manager
+		and b.channel=a.channel
+		and upper(b.attribute)='MCAUSER' and lower(b.value) = 'nobody'
+where 
+	a.queue_manager is not null
+	and b.cli_id is null
+	and a.attribute = 'SSLCIPH'
+	and (a.value = '' or a.value is null)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="6">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-1025-HC-SSL Authentication \ SSLCAUTH</cdf:title>
+      <cdf:description>Channel / SSLCAUTH (Version 5.3 or higher on UNIX): SSLCAUTH must be set to REQUIRED</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: channel {2}: attribute {3} is set to {4}. Must be set to REQUIRED.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, a.channel, a.attribute, coalesce(a.value, '"not set"')
+from
+	jac_data.unix_mqseries_channel_attrs_v3 a
+where 
+	a.queue_manager is not null
+	and upper(a.attribute) = 'SSLCAUTH'
+	and (a.value &lt;&gt; 'REQUIRED' or a.value is null)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="7">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-1030-HC-SSL Authentication \ SSLPEER</cdf:title>
+      <cdf:description>Channel / SSLPEER (Version 5.3 or higher): SSLPEER must be configured with a non-empty attribute.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: channel {2}: attribute {3} is set to {4}. Must be non-empty.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, a.channel, a.attribute, coalesce(a.value, '"not set"')
+from
+	jac_data.unix_mqseries_channel_attrs_v3 a
+	left outer join jac_data.unix_mqseries_channel_attrs_v3 b on b.cli_id=a.cli_id 
+		and b.queue_manager=a.queue_manager
+		and b.channel=a.channel
+		and upper(b.attribute)='MCAUSER' and lower(b.value) = 'nobody'
+where 
+	a.queue_manager is not null
+	and b.cli_id is null
+	and a.attribute = 'SSLPEER'
+	and (a.value = '' or a.value is null)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="8">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:requires idref="GroupsV1"></cdf:requires>
+      <cdf:title>AN-2005-HC-Identify and Authenticate Users \ Group mqm</cdf:title>
+      <cdf:description>Group id mqm (Connecting a userid to group mqm gives that userid System Authority and Security Administrative Authority.): mqm, root and mwadm are the only users to be assigned to group mqm. It is recommended to use OAM</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: User "{2}" must not be member of group "mqm"</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, c.user_name
+from 
+	jac_data.unix_mqseries_status_v3 a
+	join jac_data.unix_groups_v1 b on a.cli_id=b.cli_id
+	join jac_data.unix_group_members_v1 c on b.cli_id=c.cli_id and b.gid=c.gid
+where 
+	b.group_name='mqm' 
+	and c.user_name not in ('mqm', 'mwadm', 'root')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="9">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:requires idref="GroupsV1"></cdf:requires>
+      <cdf:title>AN-2010-HC-Identify and Authenticate Users \ User nobody</cdf:title>
+      <cdf:description>User id nobody: must not be in any other group besides the group nobody.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: User "nobody" is member of group "{2}". Must be removed from group.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct b.cli_id, a.queue_manager, b.group_name, c.user_name
+from 
+	jac_data.unix_mqseries_status_v3 a
+	inner join jac_data.unix_groups_v1 b on b.cli_id=a.cli_id 
+	inner join jac_data.unix_group_members_v1 c on b.cli_id=c.cli_id and b.gid=c.gid
+where 
+	a.queue_manager is not null
+	and c.user_name ='nobody' 
+	and b.group_name &lt;&gt; 'nobody'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="10">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:requires idref="SecUserV3"></cdf:requires>
+      <cdf:title>AN-2015-HC-Identify and Authenticate Users \ User id mqm</cdf:title>
+      <cdf:description>User id mqm: Login access to account mqm is forbidden</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}:  {2}</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select b.cli_id, b.queue_manager, 'user "mqm" must have rlogin=false and login=false'
+from 
+
+ jac_data.unix_mqseries_status_v3 b 
+	join jac_data.aix_sec_user_v3 c on b.cli_id=c.cli_id
+where 
+
+c.user_name='mqm' 
+	and (c.rlogin = 1 or c.login = 1)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="11">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-2020-HC-Protecting Resources - OSRs \ SSL directory</cdf:title>
+      <cdf:description>SSL directory (Version 5.3 or higher): The SSL directory and all files in it must be owned by account mqm, no access to others.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: file {2} has wrong settings: {3}{4}{5}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, a.file_name, 
+case when a.owner &lt;&gt; 'mqm' then ' - owner is "' || a.owner || '"' else '' end,
+case when  a."GROUP" &lt;&gt; 'mqm' then ' - group is "' || a."GROUP" || '"' else '' end,
+case when  a.text_permissions not like '%---' then ' - permission is "' || a.text_permissions || '"' else '' end
+from 
+	jac_data.unix_mqseries_file_perms_v3 a
+where 
+	a.queue_manager is not null
+	and a.attribute = 'SSLKEYR'
+	and a.file_exist = 1
+	and (a.owner &lt;&gt; 'mqm' or a."GROUP" &lt;&gt; 'mqm' or a.text_permissions not like '%---')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="12">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-2030a-HC-Protecting Resources - Configuration  parameter CONFIGEV</cdf:title>
+      <cdf:description>Queue Manager parameter CONFIGEV must be set ENABLED</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: parameter CONFIGEV {2}. Must be configured and set to ENABLED.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, case when b.cli_id is null then ' is missing' else 'has wrong value ' || b.value end
+from 
+	jac_data.unix_mqseries_status_v3 a
+	left outer join jac_data.unix_mqseries_manager_attrs_v3 b on a.cli_id=b.cli_id and a.queue_manager=b.queue_manager
+			and upper(b.attribute) = 'CONFIGEV'
+where 
+	a.status = 'OK'
+	and 
+	(b.cli_id is null
+	or 
+	b.cli_id is not null
+	and b.value &lt;&gt; 'ENABLED')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="13">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-2030b-HC-Protecting Resources - Configuration  remote queue CONFIG.EVENT</cdf:title>
+      <cdf:description>SYSTEM.ADMIN.CONFIG.EVENT must be defined as remote queue</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: queue SYSTEM.ADMIN.CONFIG.EVENT {2}. Must be configured and have QREMOTE type.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, case when b.cli_id is null then ' is missing' else 'has wrong type ' || b.queue_type end
+from 
+	jac_data.unix_mqseries_status_v3 a
+	left outer join jac_data.unix_mqseries_remote_queue_v3 b on a.cli_id=b.cli_id and a.queue_manager=b.queue_manager
+			and upper(b.queue_name) = 'SYSTEM.ADMIN.CONFIG.EVENT' 
+where 
+	a.status = 'OK'
+	and 
+	(b.cli_id is null
+	or 
+	b.cli_id is not null
+	and b.queue_type &lt;&gt; 'QREMOTE')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="14">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-2031a-HC-Protecting Resources - Configuration  parameter CMDEV</cdf:title>
+      <cdf:description>Queue Manager parameter CMDEV must be set NODISPLAY</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: parameter CMDEV {2}. Must be configured and set to NODISPLAY.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, case when b.cli_id is null then ' is missing' else 'has wrong value ' || b.value end
+from 
+	jac_data.unix_mqseries_status_v3 a
+	left outer join jac_data.unix_mqseries_manager_attrs_v3 b on a.cli_id=b.cli_id and a.queue_manager=b.queue_manager
+			and upper(b.attribute) = 'CMDEV'
+where 
+	a.status = 'OK'
+	and 
+	(b.cli_id is null
+	or 
+	b.cli_id is not null
+	and b.value &lt;&gt; 'NODISPLAY')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="15">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-2031b-HC-Protecting Resources - Configuration  remote queue COMMAND.EVENT</cdf:title>
+      <cdf:description>SYSTEM.ADMIN.COMMAND.EVENT must be defined as remote queue</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: queue SYSTEM.ADMIN.COMMAND.EVENT {2}. Must be configured and have QREMOTE type.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, case when b.cli_id is null then ' is missing' else 'has wrong type ' || b.queue_type end
+from 
+	jac_data.unix_mqseries_status_v3 a
+	left outer join jac_data.unix_mqseries_remote_queue_v3 b on a.cli_id=b.cli_id and a.queue_manager=b.queue_manager
+			and upper(b.queue_name) = 'SYSTEM.ADMIN.COMMAND.EVENT' 
+where 
+	a.status = 'OK'
+	and 
+	(b.cli_id is null
+	or 
+	b.cli_id is not null
+	and b.queue_type &lt;&gt; 'QREMOTE')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092602">Added "Violation: " to violation message.</cdf:version>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="16">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-3005a-HC-Protecting Resources - OSRs \ OAM enabled</cdf:title>
+      <cdf:description>OAM must be enabled.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: there is no stanza for service "AuthorizationService" in qm.ini</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager
+from 
+	jac_data.unix_mqseries_status_v3 a
+	left outer join jac_data.unix_mqseries_oam_stanzas_v3 b on a.cli_id=b.cli_id and a.queue_manager=b.queue_manager
+			and b.stanza='SERVICE_STANZA' and lower(b.value) = 'authorizationservice'
+where 
+	b.cli_id is null
+	and 
+	(a.message is null
+	or a.message not like '%qm.ini not found')
+and a.status = 'OK'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="17">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-3005b-HC-Protecting Resources - OSRs \ .ini files</cdf:title>
+      <cdf:description>Files qm.ini, mqs.ini: permission are set to 644 and owned by mqm:mqm.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: file {2} has wrong settings: {3}{4}{5}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.queue_manager, a.file_name, 
+case when a.owner &lt;&gt; 'mqm' then ' - owner is "' || a.owner || '"' else '' end,
+case when  a."GROUP" &lt;&gt; 'mqm' then ' - group is "' || a."GROUP" || '"' else '' end,
+case when  a.text_permissions not like '___-_--_--' then ' - permission is "' || a.text_permissions || '"' else '' end
+from 
+	jac_data.unix_mqseries_file_perms_v3 a
+where 
+	a.queue_manager is not null
+	and a.attribute = 'QM_INI'
+	and a.file_exist = 1
+	and (a.owner &lt;&gt; 'mqm' or a."GROUP" &lt;&gt; 'mqm' or a.text_permissions not like '___-_--_--')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="18">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-3010-HC-Protecting Resources - OSRs \ SYSTEM.ADMIN.COMMAND.QUEUE</cdf:title>
+      <cdf:description>SYSTEM.ADMIN.COMMAND.QUEUE: Do not allow Context Authorizations of allmqi, passid, passall, setid and setall.
+To group mqm is allowed all.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: group "{2}" has forbidden authorization on queue SYSTEM.ADMIN.COMMAND.QUEUE:  {3}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, a."GROUP", a.authority
+from
+	jac_data.unix_mqseries_authorities_v3 a
+where 
+	a.object_type = 'queue'
+	and a.objtype_profile = 'SYSTEM.ADMIN.COMMAND.QUEUE'
+	and a."GROUP" &lt;&gt; 'mqm'
+	and 
+	(a.authority like '%passid%'
+	or a.authority like '%setid%'
+	or a.authority like '%passall%'
+	or a.authority like '%setall%'
+	or a.authority like '%allmqi%'
+	)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="19">
+      <cdf:requires idref="GroupsV1"></cdf:requires>
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:requires idref="UsersV3"></cdf:requires>
+      <cdf:title>AN-3015-HC-Protecting Resources - OSRs \ Administration Authorizations</cdf:title>
+      <cdf:description>Administration Authorizations: chg, clr, crt, dlt, ctrl or ctrlx
+Restrict the ability to create queues, channels and processes (channels starting from Version 6 ) via the Administration Authorizations of chg, crt, dlt,ctrl, ctrlx, allmqi for channel
+chg, clr, crt, dlt, allmqi for queue
+chg, clr, crt, dlt, allmqi for process</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: {2} {3}: group "{4}" has forbidden authorization: {5}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, a.object_type, a.objtype_profile, a."GROUP", a.authority
+from
+	jac_data.unix_mqseries_authorities_v3 a
+	inner join (select distinct x.cli_id, x.GID, y.group_name 
+		from 
+			jac_data.unix_users_v3 x, 
+			jac_data.unix_groups_v1 y
+		where 
+			x.cli_id = y.cli_id and x.gid = y.gid and
+			x.username = 'root')    z on z.cli_id = a.cli_id
+where 
+	a.queue_manager is not null
+	and lower(a."GROUP") not in ('mqm', z.group_name)
+	and 
+	
+	(a.object_type = 'channel' 
+	and 
+	(a.authority like '%chg%' or a.authority like '%crt%' or a.authority like '%dlt%' or a.authority like '%ctrl%' 
+	or a.authority like '%ctrlx%' or a.authority like '%allmqi%')
+
+	or 
+	a.object_type = 'queue' 
+	and 
+	(a.authority like '%chg%' or a.authority like '%clr%' or a.authority like '%crt%' or a.authority like '%dlt%' 
+	or a.authority like '%allmqi%')
+
+	or 
+	a.object_type = 'process' 
+	and 
+	(a.authority like '%chg%' or a.authority like '%clr%' or a.authority like '%crt%' or a.authority like '%dlt%'
+	or a.authority like '%allmqi%')
+	)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="20">
+      <cdf:requires idref="MQSeriesV3"></cdf:requires>
+      <cdf:title>AN-3020-HC-Protecting Resources - OSRs \ MQI Authorization</cdf:title>
+      <cdf:description>MQI Authorization: Restrict the ability to use alternate user authority via the altusr MQI Authorization to users with a valid business need. Note that only principals associated with a server task should need this authority.
+Additionally allmqi is controlled.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: group "{2}" has forbidden authorization: {3}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.queue_manager, a."GROUP", a.authority
+from
+	jac_data.unix_mqseries_authorities_v3 a
+where 
+	a.queue_manager is not null
+	and a."GROUP" &lt;&gt; 'mqm'
+	and a.object_type = 'qmgr'
+	and a.objtype_profile = 'self'
+	and 
+	(a.authority like '%altusr%'
+	or a.authority like '%allmqi%')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092601">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <scm:collector id="GroupsV1" scm:classname="unix.any.GroupsV1" scm:minimumVersion="4">
+      <scm:maxAge scm:tablename="UNIX_GROUPS_V1">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_GROUP_MEMBERS_V1">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+      <scm:parameter id="EXCLUDE"></scm:parameter>
+      <scm:parameter id="GROUPS"></scm:parameter>
+    </scm:collector>
+    <scm:collector id="MQSeriesV3" scm:classname="unix.any.mqseries.MQSeriesV3" scm:minimumVersion="2">
+      <scm:maxAge scm:tablename="UNIX_MQSERIES_STATUS_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_MQSERIES_QMINI_STANZAS_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_MQSERIES_OAM_STANZAS_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_MQSERIES_AUTHORITIES_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_MQSERIES_MANAGER_ATTRS_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_MQSERIES_CHANNEL_ATTRS_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_MQSERIES_FILE_PERMS_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_MQSERIES_REMOTE_QUEUE_V3">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+    </scm:collector>
+    <scm:collector id="SecUserV3" scm:classname="aix.any.SecUserV3" scm:minimumVersion="5">
+      <scm:maxAge scm:tablename="AIX_SEC_USER_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="AIX_USER_ADMGROUPS_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="AIX_USER_AUTHMETH_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="AIX_USER_DICTLIST_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="AIX_USER_LOGINTIME_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="AIX_USER_SUGRPS_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="AIX_USER_PWDCHCK_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="AIX_USER_TTYS_V3">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+      <scm:parameter id="PROCESS_LDAP_INFO"></scm:parameter>
+    </scm:collector>
+    <scm:collector id="UsersV3" scm:classname="unix.any.UsersV3" scm:minimumVersion="1">
+      <scm:maxAge scm:tablename="UNIX_USERS_V3">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+      <scm:parameter id="CHECK_PWD_USERNAMES"></scm:parameter>
+      <scm:parameter id="PASSWD_BLACKLIST"></scm:parameter>
+      <scm:parameter id="PASSWD_BLACKLIST_URL"></scm:parameter>
+      <scm:parameter id="SCAN_REMOTE"></scm:parameter>
+    </scm:collector>
+  </cdf:Group>
+</cdf:Benchmark>

@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdf:Benchmark xmlns:cdf="http://checklists.nist.gov/xccdf/1.0" xmlns:scm="?" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="D041-R-Gv3.1-ESXI-OS">
+  <cdf:status date="Fri May 15 13:47:13 CEST 2020"></cdf:status>
+  <cdf:title>D041-R-Gv3.1-ESXI-OS</cdf:title>
+  <cdf:description scm:messageID="PolicyDescription">GNS#AP#3.1, GSD##3.1
+SCM GSD331 Deutsche VMWare ESXi systems Policy 20170913
+according to "Appendix AP.xls"
+The collector contained in this policy requires Powershell and PowerCLI to be installed.
+HCPOLICY=Remote-ESXI
+SCANTYPE=Remote-OS
+OSNAME=VMWARE
+FIXHOSTNAMES=defer_fix_ip
+PVERSION=2020051201</cdf:description>
+  <scm:maximumCollectorDataAge>0</scm:maximumCollectorDataAge>
+  <cdf:version></cdf:version>
+  <cdf:versions>
+    <cdf:version id="2020051201">Initial version.</cdf:version>
+  </cdf:versions>
+  <cdf:Profile id="default">
+    <cdf:select idref="SCM_Policy" selected="1"></cdf:select>
+    <cdf:Value id="$(true)" scm:type="string">
+      <cdf:description></cdf:description>
+      <cdf:default>True</cdf:default>
+    </cdf:Value>
+  </cdf:Profile>
+  <cdf:Group id="SCM_Policy">
+    <cdf:Rule id="1">
+      <cdf:requires idref="ESXiV1"></cdf:requires>
+      <cdf:title>AP-1020-HC-Business use notice</cdf:title>
+      <cdf:description>The banner and the message issued after successful login must not contain "Welcome". A legal disclaimer must be displayed in one of the two messages.</cdf:description>
+      <scm:violationMessage>{1} (): Violation: {2}</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select cli_id, host_name, '/etc/motd contains "Welcome" in it. Must be deleted'
+from jac_data.vmw_esxi_hosts_v1
+where lower(banner_motd) like '%welcome%'
+
+union
+
+select cli_id, host_name, '/etc/issue contains "Welcome" in it. Must be deleted'
+from jac_data.vmw_esxi_hosts_v1
+where lower(banner_issue) like '%welcome%'
+
+union
+
+select a.cli_id, a.host_name, 'either /etc/motd or /etc/issue must contain the keywords "access to" and "disconnect now"'
+from jac_data.vmw_esxi_hosts_v1 a
+left join jac_data.vmw_esxi_hosts_v1 b on a.cli_id=b.cli_id and a.host_id=b.host_id and lower(b.banner_motd) like '%access%to%disconnect%now%'
+left join jac_data.vmw_esxi_hosts_v1 c on a.cli_id=c.cli_id and a.host_id=c.host_id and lower(c.banner_issue) like '%access%to%disconnect%now%'
+where b.cli_id is null and c.cli_id is null</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version.
+Check: AP-1020-HC-Business use notice - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="2">
+      <cdf:title>AP-1024-HC-NetworkVMKIPDHCP</cdf:title>
+      <cdf:description>The management interface IP must be static ( i.e. DHCP/DDNS is not used )</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1024-HC-NetworkVMKIPDHCP - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="3">
+      <cdf:title>AP-1027-HC-UsersDCUI-VMU component communication</cdf:title>
+      <cdf:description>The proxy.xml file must not be modified</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1027-HC-UsersDCUI-VMU component communication - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="4">
+      <cdf:title>AP-1036-HC-UsersDCUI</cdf:title>
+      <cdf:description>1. Unauthorized users must not have access to the DCUI (Direct Console User Interface)
+2. The root user must not be added to any groups other than the defaults
+3. Root passwords must be managed using the CyberArk system
+4. The ESXi shell and the SSH access must be configured to a definite timeout value
+Enabled</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1036-HC-UsersDCUI - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="5">
+      <cdf:title>AP-1037-HC-UsersDCUI Timeout</cdf:title>
+      <cdf:description>Audit DCUI timeout value: 600 or more restrictive
+(for ESXi 6.0 and above)</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">initial control point version
+Check: AP-1037-HC-UsersDCUI Timeout - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="6">
+      <cdf:title>AP-1038-HC-UsersLockdown</cdf:title>
+      <cdf:description>Lock down mode disabled</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1038-HC-UsersLockdown - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="7">
+      <cdf:title>AP-1039-HC-Network SSH</cdf:title>
+      <cdf:description>Network SSH -Disabled. It can be temporarily enabled if needed for troubleshooting or special configurations.</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1039-HC-Network SSH - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="8">
+      <cdf:title>AP-1040-HC-NetworkESXi Shell</cdf:title>
+      <cdf:description>Network ESXi Shell-Disabled. It can be temporarily enabled if needed for troubleshooting or special configurations.</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1040-HC-NetworkESXi Shell - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="9">
+      <cdf:title>AP-1041b-HC-NetworkNtp IP</cdf:title>
+      <cdf:description>NTP Daemon-Enabled. Start and stop with host 
+Must be configured to use an internal DB NTP time source</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1041b-HC-NetworkNtp IP - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="10">
+      <cdf:title>AP-1041a-HC-NetworkNtp</cdf:title>
+      <cdf:description>Network NTP-Enabled. Start and stop with host</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1041a-HC-NetworkNtp - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="11">
+      <cdf:title>AP-1042-HC-SSH IDLE timeout</cdf:title>
+      <cdf:description>The ESXi shell and the SSH access must be configured to a definite timeout value
+ESXiShellInteractiveTimeOut=600 or more restrictive</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1042-HC-SSH IDLE timeout - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="12">
+      <cdf:title>AP-1043-HC-SSH Timeout</cdf:title>
+      <cdf:description>The ESXi shell and the SSH access must be configured to a definite timeout value
+ESXiShellTimeOut=14400 or more restrictive</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1043-HC-SSH Timeout - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="13">
+      <cdf:title>AP-1060-HC-SystemVSSMacChanges</cdf:title>
+      <cdf:description>Prevent MAC spoofing
+Virtual Switches - MAC address changes-Reject MAC Address Changes on all virtual switches</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1060-HC-SystemVSSMacChanges - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="14">
+      <cdf:title>AP-1061-HC-SystemVSPgMacChanges</cdf:title>
+      <cdf:description>Reject MAC Address Changes on all distributed port groups</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1061-HC-SystemVSPgMacChanges - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="15">
+      <cdf:title>AP-1065-HC-SystemVSSAllowPromiscuous</cdf:title>
+      <cdf:description>Reject Promiscuous mode on all virtual switches</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1065-HC-SystemVSSAllowPromiscuous - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="16">
+      <cdf:title>AP-1066-HC-SystemVSPgAllowPromiscuous</cdf:title>
+      <cdf:description>Reject Promiscuous mode on all virtual distributed port groups</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1066-HC-SystemVSPgAllowPromiscuous - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="17">
+      <cdf:title>AP-1067-HC-SystemVSSForgedTransmits</cdf:title>
+      <cdf:description>Reject Forged Transmits on all virtual switches</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1067-HC-SystemVSSForgedTransmits - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="18">
+      <cdf:title>AP-1068-HC-SystemVSPgForgedTransmits</cdf:title>
+      <cdf:description>Reject Forged Transmits on all distributed port groups</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1068-HC-SystemVSPgForgedTransmits - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="19">
+      <cdf:title>AP-1075-HC-LoggingGlobalLogDir</cdf:title>
+      <cdf:description>1. Remote syslog must be configured to use the internal standard syslog infrastructure
+2. Persistent logging to a local Datastore must be configured
+3. NTP time synchronization must be configured to use an internal DB NTP time source
+[] /scratch/log</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1075-HC-LoggingGlobalLogDir - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="20">
+      <cdf:title>AP-1076-HC-LoggingSysloggloballogHost</cdf:title>
+      <cdf:description>Remote host must be configured where the logs are sent.</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1076-HC-LoggingSysloggloballogHost - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="21">
+      <cdf:title>AP-1090-HC-SecurityPasswordLength</cdf:title>
+      <cdf:description>Password Must Meet Complexity Requirement
+min=disabled,disabled,disabled,15,15</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1090-HC-SecurityPasswordLength - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="22">
+      <cdf:title>AP-1095-HC-SecurityAccountUnlockTime</cdf:title>
+      <cdf:description>Lockout duration
+2 MINUTES</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-1095-HC-SecurityAccountUnlockTime - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="23">
+      <cdf:title>AP-2000-HC-SecurityAccountLockFailures</cdf:title>
+      <cdf:description>Lockout
+10 FAILED ATTEMPTS
+
+Only for ESXi 6.X: By default, a maximum of ten failed attempts is allowed before the account is locked. The account is unlocked after two minutes by default.</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-2000-HC-SecurityAccountLockFailures - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="24">
+      <cdf:title>AP-2005-HC-ImageProfileAcceptance</cdf:title>
+      <cdf:description>The ESXi Image Profiles supports four VIB acceptance levels. A VIB (vSphere Installation Bundle) is a collection of files that are packaged into an archive. The VIB contains a signature file that is used to verify the level of trust.</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-2005-HC-ImageProfileAcceptance - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="25">
+      <cdf:title>AP-2010-HC-DVFilterBindIpAddress</cdf:title>
+      <cdf:description>Confirm that dvfilter API is not configured if not is use. If you are using virtual security appliances that leverage this API then configuration may be necessary.</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-2010-HC-DVFilterBindIpAddress - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="26">
+      <cdf:title>AP-2015-HC-Disable all not required ports</cdf:title>
+      <cdf:description>Disable all ports, except the below listed ports/services:
+SSH Server - 22 (TCP) 
+NTPClient -123 (UDP)
+vSphere Web Client - 902, 443 (TCP)
+CIM server - 5988 (TCP)
+CIM Secure Server - 5989 (TCP)
+vMotion - 8000 (TCP) / 8000 (TCP)
+vSphere High Availability Manager 8182 (TCP,UDP)</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-2015-HC-Disable all not required ports - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="27">
+      <cdf:title>AP-2020-HC-NetworkSNMP</cdf:title>
+      <cdf:description>Verify that SNMP (Simple Network Management Protocol) is configured and that all the settings are correct. If SNMP is not being used, it should be disabled.
+Note: ESXi supports SNMPv3 which provides stronger security than SNMPv1 or SNMPv2, including key authentication and encryption.
+
+Disabled</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-2020-HC-NetworkSNMP - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="28">
+      <cdf:title>AP-2025-HC-EncryptionSecurityHostRuissl</cdf:title>
+      <cdf:description>TCP/IP encryption for ESXi and vCenter is encrypted with TLS by the "Config.Defaults.security.host.ruissl (Require TLS to be used when communicating with the host over port 902)" entry is checked.</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-2025-HC-EncryptionSecurityHostRuissl - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="29">
+      <cdf:title>AP-2030-HC-ImageProfileAcceptance</cdf:title>
+      <cdf:description>TLS v1.2 and above (for ESXi 6.5 and above) must be used</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-2030-HC-ImageProfileAcceptance - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="30">
+      <cdf:title>AP-2035-HC-BusinessUseNotice</cdf:title>
+      <cdf:description>"This system should be used for conducting DB's business or for purposes authorized by DB management. It is mandatory to comply with all the requirements listed in the applicable security policy and only process or store the data classes approved for this asset type. Use is subject to audit at any time by DB management."</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-2035-HC-BusinessUseNotice - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="31">
+      <cdf:title>AP-2040-HC-BusinessUseNoticeDCUI</cdf:title>
+      <cdf:description>"This system should be used for conducting DB's business or for purposes authorized by DB management. It is mandatory to comply with all the requirements listed in the applicable security policy and only process or store the data classes approved for this asset type. Use is subject to audit at any time by DB management."</cdf:description>
+      <scm:violationMessage></scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql></scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2020051201">Initial control point version
+Check: AP-2040-HC-BusinessUseNoticeDCUI - new version 2020051201</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <scm:collector id="ESXiV1" scm:classname="vmware.any.ESXiV1" scm:minimumVersion="1002">
+      <scm:maxAge scm:tablename="BusinessUseNotice">720</scm:maxAge>
+      <scm:maxAge scm:tablename="BusinessUseNoticeDCUI">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DVFilterBindIPAddress">720</scm:maxAge>
+      <scm:maxAge scm:tablename="EncryptionSecurityHost">720</scm:maxAge>
+      <scm:maxAge scm:tablename="ESXiVPsDisabledProtocols">720</scm:maxAge>
+      <scm:maxAge scm:tablename="ImageProfileAcceptance">720</scm:maxAge>
+      <scm:maxAge scm:tablename="LoggingGlobalLogDir">720</scm:maxAge>
+      <scm:maxAge scm:tablename="LoggingSysLoggloballogHost">720</scm:maxAge>
+      <scm:maxAge scm:tablename="NetworkESXiShell">720</scm:maxAge>
+      <scm:maxAge scm:tablename="NetworkNTP">720</scm:maxAge>
+      <scm:maxAge scm:tablename="NetworkSNMP">720</scm:maxAge>
+      <scm:maxAge scm:tablename="NetworkSSH">720</scm:maxAge>
+      <scm:maxAge scm:tablename="NetworkVMKIPDHCP">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SecurityAccountLockFailures">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SecurityAccountUnlockTimes">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SecurityPasswordLength">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SSHIDLEtimeout">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SSHtimeout">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVDPgAllowPromiscuous">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVDPgForgedTransmits">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVDPgMacChanges">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVDpPolicyOverride">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVSPgAllowPromiscuous">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVSPgForgedTransmits">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVSPgMacChanges">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVSSAllowPromiscuous">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVSSForgedTransmits">720</scm:maxAge>
+      <scm:maxAge scm:tablename="SystemVSSMacChanges">720</scm:maxAge>
+      <scm:maxAge scm:tablename="TCPIpPorts">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UsersDCUI">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UsersDCUITimeout">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UsersLockdown">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+      <scm:parameter id="FILE_NAME"></scm:parameter>
+    </scm:collector>
+  </cdf:Group>
+</cdf:Benchmark>

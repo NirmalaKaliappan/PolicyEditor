@@ -1,0 +1,893 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdf:Benchmark xmlns:cdf="http://checklists.nist.gov/xccdf/1.0" xmlns:scm="?" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="D041-A-Gv3.1-DB2-UNIX">
+  <cdf:status date="Wed Feb 13 10:45:45 CET 2019"></cdf:status>
+  <cdf:title>D041-A-Gv3.1-DB2-UNIX</cdf:title>
+  <cdf:description scm:messageID="PolicyDescription">DB2#K#3.1, GSD##3.1
+SCM GSD331 DeuBa DB2 UDB 20170523
+according to GMT appendix "Appendix K.xls"
+HCPOLICY=DB2-UNIX
+SCANTYPE=Middleware
+PVERSION=2019021301
+DEV</cdf:description>
+  <scm:maximumCollectorDataAge>0</scm:maximumCollectorDataAge>
+  <cdf:version></cdf:version>
+  <cdf:versions>
+    <cdf:version id="2019021301">Generated note: Deleted collector unix.any.db2.DB2InstanceConfigV4 - version 9 - deleted .jar file.
+Generated note: Added collector unix.any.db2.DB2InstanceConfigV4 - version 11.</cdf:version>
+    <cdf:version id="2018113001">Check: K-1010a-HC-Audit active - new version 2018113001
+Check: K-1010b-HC-Log AUDIT events - new version 2018113001
+Check: K-1010c-HC-Log CHECKING events - new version 2018113001
+Check: K-1010d-HC-Log SECMAINT events - new version 2018113001
+Check: K-1010e-HC-Log SYSADMIN events - new version 2018113001
+Check: K-1010f-HC-Log VALIDATE events - new version 2018113001</cdf:version>
+    <cdf:version id="2018112901">Check: K-1010a-HC-Audit active - new version 2018112901</cdf:version>
+    <cdf:version id="2018092002">Check: K-2015-HC-SVCON_AUTH - new version 2018092002</cdf:version>
+    <cdf:version id="2018092001">Initial version.</cdf:version>
+  </cdf:versions>
+  <cdf:Profile id="default">
+    <cdf:select idref="SCM_Policy" selected="1"></cdf:select>
+  </cdf:Profile>
+  <cdf:Group id="SCM_Policy">
+    <cdf:Rule id="1">
+      <cdf:requires idref="DB2FilePermsV3"></cdf:requires>
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K Instance list</cdf:title>
+      <cdf:description>Instance list</cdf:description>
+      <scm:violationMessage>{1}</scm:violationMessage>
+      <scm:priority>informational</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select cli_id, case when locate(' ', actor)&gt;0 then substr(actor, 1, locate(' ', actor)-1) else '' end from jac_data.db2_sys_commands_log_v3
+union
+select cli_id, case when locate(' ', actor)&gt;0 then substr(actor, 1, locate(' ', actor)-1) else '' end from jac_data.unix_db2_file_perms_log_v3</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="2">
+      <cdf:requires idref="GroupsV2"></cdf:requires>
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1005a-HC-SYSADM group members</cdf:title>
+      <cdf:description>List all users of SYSADM Group. 
+Approved users for SYSADM-Group: mwadm, root, db2ecc, db2das00, tecdb2si, and DB2 Instance users (i.e. the instance owner);</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: user "{2}" has SYSADM authority through membership in group "{3}". Must be verified that it is allowed.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, c.instance, a.user_name, b.group_name
+
+from 
+	jac_data.unix_group_members_v2 a
+	inner join jac_data.unix_groups_v2 b on b.cli_id=a.cli_id and b.gid=a.gid
+	inner join jac_data.db2_dbm_cfg_v3 c on b.cli_id = c.cli_id and upper(b.group_name) = c.sysadm_group
+where
+	a.user_name not in ('mwadm', 'root', 'db2ecc', 'db2das00', 'tecdb2si'  )
+	and lower(a.user_name) not in (select lower(instance) from jac_data.db2_dbm_cfg_v3 where cli_id =a.cli_Id)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="3">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:requires idref="GroupsV2"></cdf:requires>
+      <cdf:title>K-1005b-HC-SYSCTRL group members</cdf:title>
+      <cdf:description>List all users of SYSCTRL Group</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: user "{2}" has SYSCTRL authority through membership in group "{3}". Must be verified that it is allowed.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, c.instance, a.user_name, b.group_name
+
+from 
+	jac_data.unix_group_members_v2 a
+	inner join jac_data.unix_groups_v2 b on b.cli_id=a.cli_id and b.gid=a.gid
+	inner join jac_data.db2_dbm_cfg_v3 c on b.cli_id = c.cli_id and upper(b.group_name) = c.sysctrl_group</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="4">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:requires idref="GroupsV2"></cdf:requires>
+      <cdf:title>K-1005c-HC-SYSMAINT group members</cdf:title>
+      <cdf:description>List all users of SYSMAINT Group</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: user "{2}" has SYSMAINT authority through membership in group "{3}". Must be verified that it is allowed.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, c.instance, a.user_name, b.group_name
+
+from 
+	jac_data.unix_group_members_v2 a
+	inner join jac_data.unix_groups_v2 b on b.cli_id=a.cli_id and b.gid=a.gid
+	inner join jac_data.db2_dbm_cfg_v3 c on b.cli_id = c.cli_id and upper(b.group_name) = c.sysmaint_group</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="5">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1005d-HC-DBADM privilege</cdf:title>
+      <cdf:description>Lists all users/groups with DBADM privileges</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {3} "{4}" has DBADM privilege. Must be verified that it is allowed.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct c.cli_id, c.instance, c.db_alias,  
+case when c.granteetype = 'G' then 'Group' else 'User' end, c.grantee
+from 
+	jac_data.db2_syscat_db_auth_v3 c 
+where 
+	c.dbadmauth in ('G', 'Y')
+	and
+	(c.granteetype='U' and lower(c.grantee) not in ('mwadm', 'root', 'db2ecc', 'db2das00', 'tecdb2si', lower(c.instance))
+	or c.granteetype = 'G')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="6">
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:title>K-1010a-HC-Audit active</cdf:title>
+      <cdf:description>DB2 databases supporting SOX Applications or DB2 databases subject to Disaster Recovery must enable auditing</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: Auditing must be enabled</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1) 
+else '' end from jac_data.db2_sys_commands_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.AUDIT_ACTIVE != 'Y'
+
+union
+
+select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1)
+else '' end from jac_data.unix_db2_file_perms_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.AUDIT_ACTIVE != 'Y'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018113001">final version to dev/prod - if working</cdf:version>
+        <cdf:version id="2018112901">modified for testing</cdf:version>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="7">
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:title>K-1010b-HC-Log AUDIT events</cdf:title>
+      <cdf:description>DB2 databases supporting SOX Applications or DB2 databases subject to Disaster Recovery must enable auditing with the following parameter
+
+Log audit events = Both</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: Auditing must be enabled and "Log audit events" parameter must be "Both"</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1) 
+else '' end from jac_data.db2_sys_commands_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.AUDIT_EVENTS != 'B'
+
+union
+
+select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1)
+else '' end from jac_data.unix_db2_file_perms_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.AUDIT_EVENTS != 'B'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018113001">for prod, edited instance list</cdf:version>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="8">
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:title>K-1010c-HC-Log CHECKING events</cdf:title>
+      <cdf:description>DB2 databases supporting SOX Applications or DB2 databases subject to Disaster Recovery must enable auditing with the following parameter
+Log checking events = Both</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: Auditing must be enabled and "Log checking events" parameter must be "Both"</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1) 
+else '' end from jac_data.db2_sys_commands_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.CHCK_EVENTS != 'B'
+
+union
+
+select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1)
+else '' end from jac_data.unix_db2_file_perms_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.CHCK_EVENTS != 'B'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018113001">edited instance lists</cdf:version>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="9">
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:title>K-1010d-HC-Log SECMAINT events</cdf:title>
+      <cdf:description>DB2 databases supporting SOX Applications or DB2 databases subject to Disaster Recovery must enable auditing with the following parameter
+
+Log security maintenance events = Both</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: Auditing must be enabled and "Log security maintenance events" parameter must be "Both"</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1) 
+else '' end from jac_data.db2_sys_commands_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.SECMNT_EVENTS != 'B'
+
+union
+
+select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1)
+else '' end from jac_data.unix_db2_file_perms_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.SECMNT_EVENTS != 'B'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018113001">added instances</cdf:version>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="10">
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:title>K-1010e-HC-Log SYSADMIN events</cdf:title>
+      <cdf:description>DB2 databases supporting SOX Applications or DB2 databases subject to Disaster Recovery must enable auditing with the following parameter
+
+Log system administrator events = Both</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: Auditing must be enabled and "Log system administrator events" parameter must be "Both"</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1) 
+else '' end from jac_data.db2_sys_commands_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.SYSADMMNT_EVENTS != 'B'
+
+union
+
+select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1)
+else '' end from jac_data.unix_db2_file_perms_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.SYSADMMNT_EVENTS != 'B'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018113001">added instance list into vio message</cdf:version>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="11">
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:title>K-1010f-HC-Log VALIDATE events</cdf:title>
+      <cdf:description>DB2 databases supporting SOX Applications or DB2 databases subject to Disaster Recovery must enable auditing with the following parameter
+Log valide events = Both</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: Auditing must be enabled and "Log valide events" parameter must be "Both"</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1) 
+else '' end from jac_data.db2_sys_commands_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.VALID_EVENTS != 'B'
+
+union
+
+select b.cli_id, case when locate(' ', a.actor)&gt;0 then substr(a.actor, 1, locate(' ', a.actor)-1)
+else '' end from jac_data.unix_db2_file_perms_log_v3 a left outer join JAC_DATA.UNIX_DB2_AUDIT_V4 b on a.cli_id=b.cli_id
+WHERE
+b.VALID_EVENTS != 'B'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018113001">added instance list into vio message</cdf:version>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="12">
+      <cdf:requires idref="DB2FilePermsV3"></cdf:requires>
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:title>K-1015a-HC-Installation directory</cdf:title>
+      <cdf:description>Standard DB2 installation directory: 
+'/usr/lpp/db2_07_01' (V7) owner:bin group:bin  permissions 'drwxr-xr-x'  or more strict 
+'/usr/opt/db2_08_01' (V8) owner:root group:system permissions 'drwxr-sr-x' or owner:bin group:bin permissions 'drwxr-sr-x' or more strict
+V9: permissions 'drwxr-sr-x' or more strict
+Product files and subdirectories: no write access for others</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: (DB2 v{2}), product {3} "{4}" has{5}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, c.inst_nm, c.major_number, 
+case 	when a.type = 'PRODUCT_DIR' then 'directory' 
+	when a.type = 'PRODUCT_FILE' and a.perms like 'd%' then 'subdirectory'
+	else 'file' end,
+a.file_name,
+case 	when a.type in ('PRODUCT_FILE') and a.perms not like '________-_%' 
+	then ' - wrong permissions (' || a.perms || '), write access must not be permitted to others' else '' end 			||
+case	when a.type = 'PRODUCT_DIR' and c.major_number='7' and (upper(a.owner)!='BIN' or upper(a."GROUP")!='BIN')
+	then ' - wrong owner:group (' || a.owner || ':' || a."GROUP" || '), must be bin:bin' else '' end 				||
+case	when a.type = 'PRODUCT_DIR' and ( c.major_number='8' and upper(a.owner) not in ('BIN','ROOT') and ( upper(a."GROUP")) not in ('BIN','SYSTEM'))
+	then ' - wrong owner:group (' || a.owner || ':' || a."GROUP" || '), must be bin:bin or root:system' else '' end 			||
+case 	when a.type = 'PRODUCT_DIR' and c.major_number = '7' and (a.perms not like '_____-__-_%' or upper(a.perms) like '%S%')
+	then ' - wrong permissions (' || a.perms || '), must be drwxr-xr-x or more strict' else '' end 				||
+case 	when a.type = 'PRODUCT_DIR' and c.major_number in ('8','9') and (upper(a.perms) not like '_____-__-_%' or upper(a.perms) like '___S%')
+	then ' - wrong permissions (' || a.perms || '), must be drwxr-sr-x or more strict' else '' end
+from 
+	jac_data.unix_db2_list_files_v3 a 
+	inner join jac_data.unix_db2_info_v4 c on c.cli_id=a.cli_id
+where
+	(a.type in ('PRODUCT_FILE') and a.perms not like '________-_%' and not (a.file_name like '%/itma%' and c.major_number = '9' and c.minor_number='5')
+	or
+	a.type='PRODUCT_DIR' and 
+	c.major_number = '7' and
+	(upper(a.owner)!='BIN' or upper(a."GROUP")!='BIN' or a.perms not like '_____-__-_%' or upper(a.perms) like '%S%')
+	or 
+	a.type='PRODUCT_DIR' and 
+	c.major_number = '8' and
+	((upper(a.owner) not in ('BIN','ROOT') and ( upper(a."GROUP")) not in ('BIN','SYSTEM')) or upper(a.perms) not like '_____-__-_%' or upper(a.perms) like '___S%')
+	or 
+	a.type='PRODUCT_DIR' and 
+	c.major_number = '9' and
+	(a.perms not like '_____-__-_%' or upper(a.perms) like '___S%')
+	)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="13">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:requires idref="DB2FilePermsV3"></cdf:requires>
+      <cdf:title>K-1015b-HC-sqllib directory</cdf:title>
+      <cdf:description>&lt;instance owner home&gt;/sqllib directory: owner: instance owner, group: sysadm group, permissions: 'drwxrwsr-t' or strict.
+Sqllib file and subdirectories: no write access for others.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: sqllib {2} "{3}" has{4}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.instance, 
+case	when a.type = 'SQLLIB_DIR' then 'directory' 
+	when a.type = 'SQLLIB_FILE' and a.perms like 'd%' then 'subdirectory'
+	else 'file' end,
+a.file_name,
+case	when a.type='SQLLIB_DIR' and upper(a.instance)!=upper(a.owner)
+	then ' - wrong owner (' || a.owner || '), must be ' || a.instance else '' end 				||
+case	when a.type='SQLLIB_DIR' and upper(a."GROUP")!=upper(b.sysadm_group)
+	then ' - wrong group (' || a."GROUP" || '), must be ' || b.sysadm_group else '' end 				||
+case	when a.type='SQLLIB_DIR' and (a.perms not like '________-_%' or a.perms like '%x' or upper(a.perms) like '___S%')
+	then ' - wrong permissions (' || a.perms || '), must be drwxrwsr-t or more strict' else '' end 			||
+case	when a.type in ('SQLLIB_FILE') and a.perms not like '________-_%' 
+	then ' - wrong permissions (' || a.perms || '), write access must not be permitted to others' else '' end
+from 
+	jac_data.unix_db2_list_files_v3 a 
+	inner join jac_data.db2_dbm_cfg_v3 b on a.instance = b.instance and a.cli_id=b.cli_id
+where
+	a.type in ('SQLLIB_FILE', 'SQLLIB_DIR')
+	and not (a.file_name like '%/sqllib/db2dump%'
+	or a.file_name like '%/sqllib/tmp%'
+	or a.file_name like '%/sqllib/hmoncache%'
+	or a.file_name like '%/sqllib/db2event%'
+	or a.file_name like '%/sqllib/uif%'
+	or a.file_name like '%/sqllib/db2ext/indexes%'
+	or a.file_name like '%/license/nodelock.db2')
+	and
+	(a.type in ('SQLLIB_FILE') and a.perms not like '________-_%'
+	or
+	a.type='SQLLIB_DIR' 
+	and (	upper(a.instance)!=upper(a.owner) 
+		or upper(a."GROUP")!=upper(b.sysadm_group) 
+		or a.perms not like '________-_%' 
+		or a.perms like '%x' or upper(a.perms) like '___S%'
+	         )
+	)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="14">
+      <cdf:requires idref="DB2FilePermsV3"></cdf:requires>
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1020-HC-Logs and tablespaces directories</cdf:title>
+      <cdf:description>Directories containing databases, tablespace containers and database transaction/archival logs:
+Access only allowed by the DB2 instance owner and SYSADM group and/or SYSMAINT and/or SYSCTL group.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {4} "{3}" has{5}{6}{7}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.instance, a.db_alias, a.file_name,
+case 
+	when a.type='LOG_DIR' then 'log directory'
+	when a.type='DB_DIR' then 'directory wich contains directories of database itself'
+	when a.type='ARCH_LOG_DIR' then 'archived log directory'
+	when a.type='TS_SMS_DIR' then 'tablespace container directory'
+	else 'directory'
+end,
+case 	when a.instance!=a.owner 
+	then ' - wrong owner (' || a.owner || '), must be ' || a.instance 
+	else '' end,
+case 	when upper(a."GROUP") not in ((b.sysadm_group), (b.sysctrl_group),(b.sysmaint_group)) 
+	then ' - wrong group (' || a."GROUP" || '), must be one of ' || b.sysadm_group || ' ' || b.sysctrl_group || ' ' || b.sysmaint_group 
+	else '' end,
+case 	when a.perms not like '_______---%' 
+	then ' - wrong permissions (' || a.perms || '), access must not be permitted to others'
+	else '' end
+from 
+	jac_data.unix_db2_list_files_v3 a 
+	inner join jac_data.db2_dbm_cfg_v3 b on a.instance = b.instance and a.cli_id=b.cli_id
+where
+	(a.instance!=a.owner
+	or upper(a."GROUP") not in ((b.sysadm_group), (b.sysctrl_group),(b.sysmaint_group))
+	or a.perms not like '_______---%')
+	and 
+	a.type in ('DB_DIR', 'LOG_DIR', 'ARCH_LOG_DIR', 'TS_SMS_DIR')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="15">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:requires idref="DB2FilePermsV3"></cdf:requires>
+      <cdf:title>K-1025-HC-Backups directories</cdf:title>
+      <cdf:description>Directories written by DB2 BACKUP command:
+directory must be owned by instance owner 
+group must be SYSMAINT, SYSADM or SYSCTRL 
+directory permission 750</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {4} "{3}" has{5}{6}{7}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.instance, a.db_alias, a.file_name,
+case 
+	when a.type='BACKUP_DIR' then 'backup directory'
+	else 'directory'
+end,
+case 	when a.instance!=a.owner 
+	then ' - wrong owner (' || a.owner || '), must be ' || a.instance 
+	else '' end,
+case 	when upper(a."GROUP") not in ((b.sysadm_group), (b.sysctrl_group),(b.sysmaint_group)) 
+	then ' - wrong group (' || a."GROUP" || '), must be ' || b.sysadm_group || ' ' || b.sysctrl_group || ' ' || b.sysmaint_group 
+	else '' end,
+case 	when a.perms not like '_____-_---%' 
+	then ' - wrong permissions (' || a.perms || '), write access must not be permitted to group, any access must not be permitted to others'
+	else '' end
+from 
+	jac_data.unix_db2_list_files_v3 a 
+	inner join jac_data.db2_dbm_cfg_v3 b on a.instance = b.instance and a.cli_id=b.cli_id
+where
+	(a.instance!=a.owner
+	or upper(a."GROUP") not in ((b.sysadm_group), (b.sysctrl_group),(b.sysmaint_group))
+	or a.perms not like '_____-_---%')
+	and 
+	a.type in ('BACKUP_DIR')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="16">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1035-HC-PUBLIC connection</cdf:title>
+      <cdf:description>Database Connection: Public connection is not allowed.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, PUBLIC has CONNECT authority. Must be revoked.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance, a.db_alias
+
+from 
+	jac_data.DB2_SYSCAT_DB_AUTH_V3 a
+
+where
+	a.connectauth!='N'
+	and a.grantee = 'PUBLIC'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="17">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1040-HC-AUTHENTICATION</cdf:title>
+      <cdf:description>The database manager may be configured to use any authentication method with the exception of AUTHENTICATION=CLIENT</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: configured to use authentication method {2}. Another authentication method must be used.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance, a.authentication
+from 
+	jac_data.db2_dbm_cfg_v3 a
+where 
+	a.authentication='CLIENT'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="18">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1045-HC-IMPLICIT SCHEMA</cdf:title>
+      <cdf:description>When created: Revoke IMPLICIT_SCHEMA from the group PUBLIC.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, PUBLIC has IMPLICIT_SCHEMA authority. Must be revoked.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance, a.db_alias
+
+from 
+	jac_data.DB2_SYSCAT_DB_AUTH_V3 a
+
+where
+	a.implschemaauth!='N'
+	and a.grantee = 'PUBLIC'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="19">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:requires idref="DB2FilePermsV3"></cdf:requires>
+      <cdf:title>K-1050-HC-Database files</cdf:title>
+      <cdf:description>database files (tablespace containers, transaction logs) must be owned by the DB2 instance owner. Group SYSADM, access only to the DB2 instance owner.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {4} "{3}" has{5}{6}{7}.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.instance, a.db_alias, a.file_name,
+case 
+	when a.type='LOG_FILE' then 'log file'
+	when a.type='TS_SMS_FILE' then 'tablespace container file'
+	when a.type='TS_DMS_FILE' then 'tablespace container file'
+	else 'file' end,
+case	when a.instance!=a.owner 
+	then ' - wrong owner (' || a.owner || '), must be ' || a.instance 
+	else '' end,
+case	when upper(a."GROUP")!=b.sysadm_group 
+	then ' - wrong group (' || a."GROUP" || '), must be ' || b.sysadm_group 
+	else '' end,
+case	when a.perms not like '___-------%' 
+	then ' - wrong permissions (' || a.perms || '), access allowed only for instance'
+	else '' end
+from 
+	jac_data.unix_db2_list_files_v3 a 
+	inner join jac_data.db2_dbm_cfg_v3 b on a.instance = b.instance and a.cli_id=b.cli_id
+
+where
+	(a.instance!=a.owner
+	or upper(a."GROUP")!=b.sysadm_group
+	or a.perms not like '___-------%')
+	and 
+	a.type in ('LOG_FILE', 'TS_SMS_FILE','TS_DMS_FILE')</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="20">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1055-HC-PUBLIC table select privileges</cdf:title>
+      <cdf:description>SELECT on application tables in DB2 must not be granted  to PUBLIC.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, PUBLIC has SELECT authority on application table {3}.{4}. Must be revoked.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance, a.db_alias, a.tabschema, a.tabname
+
+from
+	jac_data.db2_syscat_tab_auth_v3 a
+where
+	a.grantee='PUBLIC'
+	and a.selectauth!='N'
+	and a.tabschema not like 'SYS%'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="21">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1060a-HC-WGO table privileges</cdf:title>
+      <cdf:description>The use of the WITH GRANT OPTION feature is not permitted for application objects except for the DB2 Instance owner, the definer of the application object, and DBA users.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {3} {4}, {6} {5} has{7} WGO ('with grant option') privilege. All WGO privileges must be revoked.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance, a.db_alias, 'Table', a.tabschema||'.'||a.tabname, a.grantee,
+   case when a.granteetype='G' then 'group' else 'user' end,
+   CASE when upper(a.CONTROLAUTH)='G' then ' - CONTROLAUTH, ' else '' END ||
+   CASE when upper(a.ALTERAUTH)='G' then ' - ALTERAUTH, ' else '' END ||
+   CASE when upper(a.DELETEAUTH)='G' then ' - DELETEAUTH, ' else '' END ||
+   CASE when upper(a.INDEXAUTH)='G' then ' - INDEXAUTH, ' else '' END ||
+   CASE when upper(a.INSERTAUTH)='G' then ' - INSERTAUTH, ' else '' END ||
+   CASE when upper(a.SELECTAUTH)='G' then ' - SELECTAUTH, ' else '' END ||
+   CASE when upper(a.REFAUTH)='G' then ' - REFAUTH, ' else '' END ||
+   CASE when upper(a.UPDATEAUTH)='G' then ' - UPDATEAUTH' else '' END
+from
+	JAC_DATA.DB2_SYSCAT_TAB_AUTH_V3 a
+	left join JAC_DATA.DB2_SYSCAT_DB_AUTH_V3 b on a.cli_id = b.cli_id and a.instance = b.instance 
+		and a.db_alias = b.db_alias and a.grantee = b.grantee and b.dbadmauth!='N'
+where 
+	a.tabschema not like 'SYS%'
+	and b.dbadmauth is null
+	and 
+	(a.controlauth='G' or a.alterauth='G' or a.deleteauth='G' or a.indexauth='G' 
+	or a.insertauth='G' or a.selectauth='G' or a.refauth='G' or a.updateauth='G')
+	and a.grantee!=upper(a.instance)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="22">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1060b-HC-WGO tablespace privileges</cdf:title>
+      <cdf:description>The use of the WITH GRANT OPTION feature is not permitted for application objects except for the DB2 Instance owner, the definer of the application object, and DBA users.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {3} {4}, {6} {5} has{7} WGO ('with grant option') privilege. All WGO privileges must be revoked.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance, a.db_alias, 'Tablespace', a.tbspace, a.grantee,
+   case when a.granteetype='G' then 'group' else 'user' end,
+   CASE when upper(a.USEAUTH)='G' then ' - USEAUTH, ' else '' END 
+from
+	JAC_DATA.DB2_SYSCAT_TBSPACE_AUTH_V3 a
+	left join JAC_DATA.DB2_SYSCAT_DB_AUTH_V3 b on a.cli_id = b.cli_id and a.instance = b.instance 
+		and a.db_alias = b.db_alias and a.grantee = b.grantee and b.dbadmauth!='N'
+where 
+	a.tbspace not like 'SYS%'
+	and b.dbadmauth is null
+	and 
+	a.useauth='G'
+	and a.grantee!=upper(a.instance)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="23">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1060c-HC-WGO schema privileges</cdf:title>
+      <cdf:description>The use of the WITH GRANT OPTION feature is not permitted for application objects except for the DB2 Instance owner, the definer of the application object, and DBA users.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {3} {4}, {6} {5} has{7} WGO ('with grant option') privilege. All WGO privileges must be revoked.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance, a.db_alias, 'Schema', a.schemaname, a.grantee,
+   case when a.granteetype='G' then 'group' else 'user' end,
+   CASE when upper(a.ALTERINAUTH)='G' then ' - ALTERINAUTH, ' else '' END ||
+   CASE when upper(a.CREATEINAUTH)='G' then ' - CREATEINAUTH, ' else '' END ||
+   CASE when upper(a.DROPINAUTH)='G' then ' - DROPINAUTH, ' else '' END
+from
+	JAC_DATA.DB2_SYSCAT_SCHEMA_AUTH_V3 a
+	left join JAC_DATA.DB2_SYSCAT_DB_AUTH_V3 b on a.cli_id = b.cli_id and a.instance = b.instance 
+		and a.db_alias = b.db_alias and a.grantee = b.grantee and b.dbadmauth!='N'
+where 
+	a.schemaname &lt;&gt; 'NULLID'
+	and a.schemaname &lt;&gt; 'SQLJ'
+	and a.schemaname not like 'SYS%'
+	and b.dbadmauth is null
+	and 
+	(a.alterinauth='G' or a.createinauth='G' or a.dropinauth='G')
+	and a.grantee!=upper(a.instance)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="24">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1060d-HC-WGO package privileges</cdf:title>
+      <cdf:description>The use of the WITH GRANT OPTION feature is not permitted for application objects except for the DB2 Instance owner, the definer of the application object, and DBA users.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {3} {4}, {6} {5} has{7} WGO ('with grant option') privilege. All WGO privileges must be revoked.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance, a.db_alias, 'Package', a.pkgschema||'.'||a.pkgname, a.grantee,
+   case when a.granteetype='G' then 'group' else 'user' end,
+   CASE when upper(a.CONTROLAUTH)='G' then ' - CONTROLAUTH, ' else '' END ||
+   CASE when upper(a.BINDAUTH)='G' then ' - BINDAUTH, ' else '' END ||
+   CASE when upper(a.EXECUTEAUTH)='G' then ' - EXECUTEAUTH, ' else '' END
+from
+	JAC_DATA.DB2_SYSCAT_PACKAGE_AUTH_V3 a
+	left join JAC_DATA.DB2_SYSCAT_DB_AUTH_V3 b on a.cli_id = b.cli_id and a.instance = b.instance 
+		and a.db_alias = b.db_alias and a.grantee = b.grantee and b.dbadmauth!='N'
+where 
+	a.pkgschema &lt;&gt; 'NULLID'
+	and a.pkgname not like 'SQL%' 
+	and a.pkgname not like 'SYS%'
+	and b.dbadmauth is null
+	and 
+	(a.controlauth='G' or a.bindauth='G' or a.executeauth='G')
+	and a.grantee!=upper(a.instance)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="25">
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-1060e-HC-WGO routine privileges</cdf:title>
+      <cdf:description>The use of the WITH GRANT OPTION feature is not permitted for application objects except for the DB2 Instance owner, the definer of the application object, and DBA users.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {3} {4}, {6} {5} has{7} WGO ('with grant option') privilege. All WGO privileges must be revoked.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance, a.db_alias, 'Routine', A."SCHEMA"||'.'||a.specificname, a.grantee,
+   case when a.granteetype='G' then 'group' else 'user' end,
+   CASE when upper(a.EXECUTEAUTH)='G' then ' - EXECUTEAUTH, ' else '' END 
+from
+	JAC_DATA.DB2_SYSCAT_ROUTINE_AUTH_V3 a
+	left join JAC_DATA.DB2_SYSCAT_DB_AUTH_V3 b on a.cli_id = b.cli_id and a.instance = b.instance 
+		and a.db_alias = b.db_alias and a.grantee = b.grantee and b.dbadmauth!='N'
+where 
+	upper(a."SCHEMA") not in ('SYSFUN', 'SYSIBM', 'SYSPROC', 'SQLJ')
+	and b.dbadmauth is null
+	and a.executeauth='G'
+	and a.grantee!=upper(a.instance)</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="26">
+      <cdf:requires idref="DB2FilePermsV3"></cdf:requires>
+      <cdf:title>K-1065-HC-Instance directories</cdf:title>
+      <cdf:description>All other instance directories, which do not contain Tablespace container files or database transaction/archival logs:
+no write access for others</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {3} "{4}" has - wrong permissions ({5}), write access must not be permitted to others</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.instance, a.db_alias, 
+case when a.perms like 'd%' then 'directory' else 'file' end,
+a.file_name, a.perms
+from 
+	jac_data.unix_db2_list_files_v3 a 
+where
+	a.type in ('NODE_DIR')
+	and a.perms not like '________-_%'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="27">
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-2005-HC-Tables and view privelegies for PUBLIC</cdf:title>
+      <cdf:description>If running V9, PUBLIC must not have the SELECT privilege on the following tables/views if they exist:
+SYSCAT.*AUTH 
+SYSIBM.*AUTH
+SYSCAT.SECURITYLABELACCESS
+SYSCAT.SECURITYPOLICYEXEMPTIONS
+SYSCAT.SURROGATEAUTHIDS 
+SYSIBMADM.AUTHORIZATIONIDS
+SYSIBMADM.OBJECTOWNERS
+SYSIBMADM.PRIVILEGES
+SYSIBM.SYSSECURITYLABELACCESS
+SYSIBM.SYSSECURITYPOLICYEXEMPTIONS
+SYSIBM.SYSSURROGATEAUTHIDS</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, {3} has SELECT privilegies on {7} {4}.{5}</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.instance, a.db_alias, a.grantee, a.tabschema, a.tabname, a.selectauth,
+case when (a.tabschema = 'SYSIBM') then 'table' 
+          when (a.tabschema in ('SYSCAT', 'SYSIBMADM')) then 'view'
+         else '' end
+
+from 
+	jac_data.db2_syscat_tab_auth_v3 a
+	inner join jac_data.unix_db2_info_v4 b on b.cli_id=a.cli_id and a.instance = b.inst_nm
+
+where 
+	(
+	a.tabschema = 'SYSCAT'
+	and (a.tabname in ('SECURITYLABELACCESS', 'SECURITYPOLICYEXEMPTIONS', 'SURROGATEAUTHIDS') or a.tabname like '%AUTH')
+	or a.tabschema = 'SYSIBMADM'
+	and a.tabname in ('AUTHORIZATIONIDS', 'OBJECTOWNERS', 'PRIVILEGES')
+	or a.tabschema = 'SYSIBM'
+	and (a.tabname in ('SYSSECURITYLABELACCESS', 'SYSSECURITYPOLICYEXEMPTIONS', 'SYSSURROGATEAUTHIDS') or a.tabname like '%AUTH')
+	)
+	and a.grantee = 'PUBLIC'
+	and a.selectauth != 'N'
+	and b.major_number = '9'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="28">
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:requires idref="DB2QueriesV3"></cdf:requires>
+      <cdf:title>K-2010-HC-CREATEIN for PUBLIC</cdf:title>
+      <cdf:description>If running V9, PUBLIC must not have CREATEIN SCHEMA privilege.</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: DB {2}, schema {3}, {4} has CREATEIN schema privilege. Must be revoked.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select distinct a.cli_id, a.instance, a.db_alias, a.schemaname, a.grantee
+
+from
+	jac_data.DB2_SYSCAT_SCHEMA_AUTH_V3 a
+	inner join jac_data.unix_db2_info_v4 b on b.cli_id=a.cli_id and a.instance = b.inst_nm
+where
+	a.grantee='PUBLIC'
+	and a.createinauth!='N'
+	and b.major_number='9'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <cdf:Rule id="29">
+      <cdf:requires idref="DB2InstanceConfigV4"></cdf:requires>
+      <cdf:requires idref="DB2DbAuditV4"></cdf:requires>
+      <cdf:title>K-2015-HC-SVCON_AUTH</cdf:title>
+      <cdf:description>SRVCON_AUTH must not be set to CLIENT</cdf:description>
+      <scm:violationMessage>Violation: Instance {1}: is configured SRVCON_AUTH=CLIENT. Another authentication method must be used.</scm:violationMessage>
+      <scm:priority>normal</scm:priority>
+      <cdf:check system="TivoliSecurityComplianceManager">
+        <scm:sql>select a.cli_id, a.instance_name, a.config_param_value
+from 
+	jac_data.unix_db2_mgr_cfg_v4 a
+	inner join jac_data.unix_db2_info_v4 b on a.instance_name = b.inst_nm
+
+where 
+	upper(a.config_param_name)='SRVCON_AUTH' 
+	and upper(a.config_param_value)='CLIENT'
+	and b.major_number = '9'</scm:sql>
+      </cdf:check>
+      <cdf:versions>
+        <cdf:version id="2018092002">Fixed instance message (added ":")</cdf:version>
+        <cdf:version id="2018092001">Initial control point version.</cdf:version>
+      </cdf:versions>
+    </cdf:Rule>
+    <scm:collector id="DB2DbAuditV4" scm:classname="unix.any.db2.DB2DbAuditV4" scm:minimumVersion="13">
+      <scm:maxAge scm:tablename="UNIX_DB2_INFO_VARIABLES_V4">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+    </scm:collector>
+    <scm:collector id="DB2FilePermsV3" scm:classname="unix.any.DB2FilePermsV3" scm:minimumVersion="2010121306">
+      <scm:maxAge scm:tablename="UNIX_DB2_FILE_PERMS_LOG_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_DB2_LIST_FILES_V3">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+    </scm:collector>
+    <scm:collector id="DB2QueriesV3" scm:classname="any.any.DB2QueriesV3" scm:minimumVersion="5">
+      <scm:maxAge scm:tablename="DB2_SYS_COMMANDS_LOG_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_AUDIT_DESCRIBE_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_DBM_CFG_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_SYSCAT_COL_AUTH_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_SYSCAT_DB_AUTH_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_SYSCAT_INDEX_AUTH_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_SYSCAT_PASSTHRU_AUTH_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_SYSCAT_PACKAGE_AUTH_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_SYSCAT_ROUTINE_AUTH_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_SYSCAT_SCHEMA_AUTH_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_SYSCAT_TAB_AUTH_V3">720</scm:maxAge>
+      <scm:maxAge scm:tablename="DB2_SYSCAT_TBSPACE_AUTH_V3">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+    </scm:collector>
+    <scm:collector id="GroupsV2" scm:classname="unix.any.GroupsV2" scm:minimumVersion="4">
+      <scm:maxAge scm:tablename="UNIX_GROUPS_V2">720</scm:maxAge>
+      <scm:maxAge scm:tablename="UNIX_GROUP_MEMBERS_V2">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+      <scm:parameter id="EXCLUDE"></scm:parameter>
+      <scm:parameter id="GROUPS"></scm:parameter>
+      <scm:parameter id="PROCESS_LDAP_INFO"></scm:parameter>
+    </scm:collector>
+    <scm:collector id="DB2InstanceConfigV4" scm:classname="unix.any.db2.DB2InstanceConfigV4" scm:minimumVersion="11">
+      <scm:maxAge scm:tablename="UNIX_DB2_MGR_CFG_V4">720</scm:maxAge>
+      <scm:schedule>
+        <scm:monthOfYear random="false">xxxxxxxxxxxx</scm:monthOfYear>
+        <scm:dayOfMonth random="false">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:dayOfMonth>
+        <scm:dayOfWeek random="true">xxxxxxx</scm:dayOfWeek>
+        <scm:hourOfDay random="true">xxxxxxxxxxxxxxxxxxxxxxxx</scm:hourOfDay>
+        <scm:minuteOfHour random="true">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</scm:minuteOfHour>
+      </scm:schedule>
+    </scm:collector>
+  </cdf:Group>
+</cdf:Benchmark>
